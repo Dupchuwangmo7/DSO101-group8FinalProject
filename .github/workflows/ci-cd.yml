@@ -1,0 +1,201 @@
+name: CI/CD Pipeline
+
+# ============================================================
+# Trigger Configuration
+# ============================================================
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+env:
+  REGISTRY: docker.io
+  FRONTEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/semzung-frontend
+  BACKEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/semzung-backend
+
+# ============================================================
+# Jobs
+# ============================================================
+jobs:
+  # ============================================================
+  # Lint and Test
+  # ============================================================
+  lint-and-test:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # ============================================================
+      # Backend Testing
+      # ============================================================
+      - name: Setup Node.js for backend
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Lint backend code
+        working-directory: ./backend
+        run: npm run lint --if-present
+        continue-on-error: true
+
+      - name: Run backend tests
+        working-directory: ./backend
+        run: npm test --if-present
+        continue-on-error: true
+        env:
+          NODE_ENV: test
+          MONGODB_URI: ${{ secrets.TEST_MONGODB_URI }}
+          JWT_SECRET: test-secret
+
+      # ============================================================
+      # Frontend Testing
+      # ============================================================
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Lint frontend code
+        working-directory: ./frontend
+        run: npm run lint --if-present
+        continue-on-error: true
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+        env:
+          VITE_API_URL: ${{ secrets.API_URL }}
+
+  # ============================================================
+  # Build Docker Images
+  # ============================================================
+  build-images:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Build Backend Image
+      - name: Build and push backend image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ env.BACKEND_IMAGE }}:latest
+            ${{ env.BACKEND_IMAGE }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.BACKEND_IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.BACKEND_IMAGE }}:buildcache,mode=max
+
+      # Build Frontend Image
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ env.FRONTEND_IMAGE }}:latest
+            ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.FRONTEND_IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.FRONTEND_IMAGE }}:buildcache,mode=max
+
+  # ============================================================
+  # Security Scan
+  # ============================================================
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # ============================================================
+  # Deploy to Production
+  # ============================================================
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build-images
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to Railway/Render (example)
+        env:
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+          DEPLOY_URL: ${{ secrets.DEPLOY_URL }}
+        run: |
+          # Example deployment script
+          echo "Deploying to production..."
+          # Replace with your actual deployment command
+          # curl -X POST ${{ secrets.DEPLOY_URL }} \
+          #   -H "Authorization: Bearer ${{ secrets.DEPLOY_TOKEN }}" \
+          #   -H "Content-Type: application/json" \
+          #   -d '{"ref": "main", "environment": "production"}'
+
+      - name: Notify Deployment Success
+        run: |
+          echo "✅ Deployment successful!"
+          echo "Frontend: ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}"
+          echo "Backend: ${{ env.BACKEND_IMAGE }}:${{ github.sha }}"
+
+  # ============================================================
+  # Notify on Failure
+  # ============================================================
+  notify-on-failure:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    needs: [lint-and-test, build-images, security-scan]
+    if: failure()
+
+    steps:
+      - name: Send notification
+        run: |
+          echo "❌ CI/CD pipeline failed!"
+          echo "Check logs at: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
