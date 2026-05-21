@@ -101,7 +101,6 @@ jobs:
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
-        continue-on-error: true
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -109,7 +108,6 @@ jobs:
       # Build Backend Image
       - name: Build and push backend image
         uses: docker/build-push-action@v4
-        continue-on-error: true
         with:
           context: ./backend
           push: true
@@ -122,7 +120,6 @@ jobs:
       # Build Frontend Image
       - name: Build and push frontend image
         uses: docker/build-push-action@v4
-        continue-on-error: true
         with:
           context: ./frontend
           push: true
@@ -131,6 +128,18 @@ jobs:
             ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
           cache-from: type=registry,ref=${{ env.FRONTEND_IMAGE }}:buildcache
           cache-to: type=registry,ref=${{ env.FRONTEND_IMAGE }}:buildcache,mode=max
+
+      - name: Output image tags
+        run: |
+          echo "✅ Docker images built and pushed successfully!"
+          echo ""
+          echo "Backend Image:"
+          echo "  ${{ env.BACKEND_IMAGE }}:latest"
+          echo "  ${{ env.BACKEND_IMAGE }}:${{ github.sha }}"
+          echo ""
+          echo "Frontend Image:"
+          echo "  ${{ env.FRONTEND_IMAGE }}:latest"
+          echo "  ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}"
 
   # ============================================================
   # Security Scan
@@ -168,32 +177,36 @@ jobs:
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: [lint-and-test]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    continue-on-error: true
+    needs: [lint-and-test, build-images]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && always()
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Deploy to Railway/Render (example)
-        env:
-          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
-          DEPLOY_URL: ${{ secrets.DEPLOY_URL }}
+      - name: Deploy to Render (Manual - Use Docker Images)
+        if: success()
         run: |
-          # Example deployment script
-          echo "Deploying to production..."
-          # Replace with your actual deployment command
-          # curl -X POST ${{ secrets.DEPLOY_URL }} \
-          #   -H "Authorization: Bearer ${{ secrets.DEPLOY_TOKEN }}" \
-          #   -H "Content-Type: application/json" \
-          #   -d '{"ref": "main", "environment": "production"}'
+          echo "🚀 Ready for deployment on Render!"
+          echo ""
+          echo "Backend Docker Image:"
+          echo "  ${{ env.BACKEND_IMAGE }}:latest"
+          echo "  ${{ env.BACKEND_IMAGE }}:${{ github.sha }}"
+          echo ""
+          echo "Frontend Docker Image:"
+          echo "  ${{ env.FRONTEND_IMAGE }}:latest"
+          echo "  ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}"
+          echo ""
+          echo "To deploy on Render:"
+          echo "  1. Go to https://dashboard.render.com"
+          echo "  2. Redeploy your services to pull the latest images"
+          echo "  3. Or set your service to auto-deploy from Docker Hub"
 
-      - name: Notify Deployment Success
+      - name: Deployment Status
+        if: failure()
         run: |
-          echo "✅ Deployment successful!"
-          echo "Frontend: ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}"
-          echo "Backend: ${{ env.BACKEND_IMAGE }}:${{ github.sha }}"
+          echo "❌ Skipping deployment - Docker build or tests failed"
+          exit 1
 
   # ============================================================
   # Notify on Failure
@@ -201,7 +214,7 @@ jobs:
   notify-on-failure:
     name: Notify on Failure
     runs-on: ubuntu-latest
-    needs: [lint-and-test]
+    needs: [lint-and-test, build-images, deploy]
     if: failure()
 
     steps:
