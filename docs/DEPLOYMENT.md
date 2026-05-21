@@ -138,7 +138,7 @@ flyctl deploy
 **Backend** (`backend/.env` or platform secrets):
 ```env
 NODE_ENV=production
-PORT=5000
+PORT=5002
 
 # Database
 MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/semzung

@@ -170,7 +170,7 @@ cd ..
 ```bash
 cd backend
 npm run dev
-# Server runs on http://localhost:5000
+# Server runs on http://localhost:5002
 ```
 
 **Terminal 2 - Frontend:**
@@ -204,7 +204,7 @@ docker-compose down
 ```bash
 cd backend
 docker build -t semzung-backend:1.0.0 .
-docker run -p 5000:5000 --env-file .env semzung-backend:1.0.0
+docker run -p 5002:5002 --env-file .env semzung-backend:1.0.0
 ```
 
 **Frontend:**
@@ -306,7 +306,7 @@ GET    /api/admin/dashboard        Get dashboard stats (admin only)
 
 ```bash
 # Register
-curl -X POST http://localhost:5000/api/auth/register \
+curl -X POST http://localhost:5002/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "name": "John Doe",
@@ -315,7 +315,7 @@ curl -X POST http://localhost:5000/api/auth/register \
   }'
 
 # Login
-curl -X POST http://localhost:5000/api/auth/login \
+curl -X POST http://localhost:5002/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "john@example.com",
@@ -323,7 +323,7 @@ curl -X POST http://localhost:5000/api/auth/login \
   }'
 
 # Create Post (with token)
-curl -X POST http://localhost:5000/api/posts \
+curl -X POST http://localhost:5002/api/posts \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -d '{
@@ -440,13 +440,13 @@ flyctl deploy
 
 ```bash
 # Backend
-curl http://localhost:5000/health
+curl http://localhost:5002/health
 
 # Frontend
 curl http://localhost/
 
 # Full API status
-curl http://localhost:5000/api
+curl http://localhost:5002/api
 ```
 
 ### Docker Logs
@@ -475,7 +475,7 @@ docker-compose logs -f --timestamps
 ### Frontend API calls failing
 ```bash
 # Check VITE_API_URL in frontend/.env
-# Verify backend is running on port 5000
+# Verify backend is running on port 5002
 # Check CORS configuration in backend/src/server.js
 ```
 

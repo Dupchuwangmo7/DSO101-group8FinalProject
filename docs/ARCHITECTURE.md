@@ -359,7 +359,7 @@ GitHub Actions (CI/CD)
     ↓
 Docker Compose (Local)
     ├─ Frontend (port 80)
-    └─ Backend (port 5000)
+    └─ Backend (port 5002)
 ```
 
 ### Production (Railway Example)

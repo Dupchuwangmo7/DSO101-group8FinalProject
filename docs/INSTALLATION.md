@@ -114,7 +114,7 @@ nano .env  # or use your editor
 ```env
 # Server
 NODE_ENV=development
-PORT=5000
+PORT=5002
 
 # Database (from MongoDB Atlas)
 MONGODB_URI=mongodb+srv://semzung_user:YOUR_PASSWORD@cluster0.mongodb.net/semzung
@@ -145,10 +145,10 @@ npm run dev
 
 # Check logs for:
 # ✅ MongoDB Connected: ...
-# ✅ Server running on: http://localhost:5000
+# ✅ Server running on: http://localhost:5002
 
 # Test health endpoint
-curl http://localhost:5000/health
+curl http://localhost:5002/health
 
 # Should return: {"status":"OK",...}
 
@@ -175,7 +175,7 @@ nano .env
 
 ```env
 # API Configuration
-VITE_API_URL=http://localhost:5000
+VITE_API_URL=http://localhost:5002
 
 # Feature Flags
 VITE_ENABLE_ANALYTICS=true
@@ -226,13 +226,13 @@ docker-compose ps
 
 # Should show:
 # - semzung_frontend_1  (port 80)
-# - semzung_backend_1   (port 5000)
+# - semzung_backend_1   (port 5002)
 
 # View logs
 docker-compose logs -f
 
 # Test backend
-curl http://localhost:5000/health
+curl http://localhost:5002/health
 
 # Test frontend
 curl http://localhost
@@ -241,7 +241,7 @@ curl http://localhost
 ### Step 3: Access Application
 
 - **Frontend**: http://localhost
-- **Backend API**: http://localhost:5000/api
+- **Backend API**: http://localhost:5002/api
 
 ## ✅ Verification Checklist
 
@@ -250,7 +250,7 @@ curl http://localhost
 - [ ] `npm install` completed
 - [ ] `.env` configured with MongoDB URI
 - [ ] `npm run dev` starts without errors
-- [ ] `curl http://localhost:5000/health` returns 200
+- [ ] `curl http://localhost:5002/health` returns 200
 
 ### Frontend Checks
 - [ ] Node.js v18+ installed
@@ -277,7 +277,7 @@ curl http://localhost
 ### 1. Register New User
 
 ```bash
-curl -X POST http://localhost:5000/api/auth/register \
+curl -X POST http://localhost:5002/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Test User",
@@ -299,7 +299,7 @@ Expected response:
 ### 2. Login
 
 ```bash
-curl -X POST http://localhost:5000/api/auth/login \
+curl -X POST http://localhost:5002/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
@@ -311,7 +311,7 @@ curl -X POST http://localhost:5000/api/auth/login \
 
 ```bash
 # Use the token from login
-curl http://localhost:5000/api/auth/me \
+curl http://localhost:5002/api/auth/me \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
@@ -371,16 +371,16 @@ Access to XMLHttpRequest blocked by CORS policy
 **Solution**:
 - Verify FRONTEND_URL in backend .env
 - Frontend running on port 5173
-- Backend running on port 5000
+- Backend running on port 5002
 
 ### Port Already in Use
 ```
-Error: listen EADDRINUSE :::5000
+Error: listen EADDRINUSE :::5002
 ```
 **Solution**:
 ```bash
-# Find and kill process using port 5000
-lsof -ti:5000 | xargs kill -9
+# Find and kill process using port 5002
+lsof -ti:5002 | xargs kill -9
 
 # Or use different port
 PORT=5001 npm run dev

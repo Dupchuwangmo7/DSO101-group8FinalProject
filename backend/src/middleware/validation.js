@@ -38,8 +38,8 @@ const schemas = {
     title: Joi.string().max(100).required(),
     content: Joi.string().max(10000).required(),
     mood: Joi.string().valid('terrible', 'bad', 'okay', 'good', 'excellent').required(),
-    tags: Joi.array().items(Joi.string()),
-    isPrivate: Joi.boolean()
+    tags: Joi.array().items(Joi.string()).default([]),
+    isPrivate: Joi.boolean().default(true)
   })
 };
 

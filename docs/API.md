@@ -5,7 +5,7 @@ Complete reference for Semzung API endpoints.
 ## 📋 Base URL
 
 ```
-http://localhost:5000/api
+http://localhost:5002/api
 ```
 
 ## 🔐 Authentication
@@ -647,7 +647,7 @@ Allowed origins:
 
 ```bash
 # 1. Register
-curl -X POST http://localhost:5000/api/auth/register \
+curl -X POST http://localhost:5002/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"name":"John","email":"john@example.com","password":"Pass123"}'
 
@@ -655,22 +655,22 @@ curl -X POST http://localhost:5000/api/auth/register \
 
 # 2. Create post
 TOKEN="eyJhbGc..."
-curl -X POST http://localhost:5000/api/posts \
+curl -X POST http://localhost:5002/api/posts \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"title":"Hello","content":"Test post","category":"general","isAnonymous":true}'
 
 # 3. Get posts
-curl http://localhost:5000/api/posts?category=general
+curl http://localhost:5002/api/posts?category=general
 
 # 4. Add mood
-curl -X POST http://localhost:5000/api/mood \
+curl -X POST http://localhost:5002/api/mood \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"mood":"good","intensity":8}'
 
 # 5. Get stats
-curl http://localhost:5000/api/mood/stats \
+curl http://localhost:5002/api/mood/stats \
   -H "Authorization: Bearer $TOKEN"
 ```
 

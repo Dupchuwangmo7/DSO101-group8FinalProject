@@ -1,7 +1,6 @@
 node_modules/
-dist/
-.DS_Store
 .env
 .env.local
 *.log
-npm-debug.log*
+coverage/
+.DS_Store

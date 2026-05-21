@@ -37,7 +37,7 @@ export default function Journal() {
     setLoading(true);
 
     try {
-      await api.post('/journal', { title, content, mood });
+      const response = await api.post('/journal', { title, content, mood });
       setMessage('Journal entry created! 📝');
       setTitle('');
       setContent('');
@@ -46,7 +46,9 @@ export default function Journal() {
       await fetchJournals();
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      setMessage('Failed to create entry');
+      const errorMsg = error.response?.data?.message || error.response?.data?.errors?.[0] || 'Failed to create entry';
+      setMessage(errorMsg);
+      console.error('Journal creation error:', error.response?.data);
     } finally {
       setLoading(false);
     }
@@ -57,9 +59,12 @@ export default function Journal() {
       try {
         await api.delete(`/journal/${id}`);
         setMessage('Entry deleted');
+        setSelectedJournal(null);
         await fetchJournals();
       } catch (error) {
-        setMessage('Failed to delete entry');
+        const errorMsg = error.response?.data?.message || 'Failed to delete entry';
+        setMessage(errorMsg);
+        console.error('Delete error:', error.response?.data);
       }
     }
   };
@@ -87,7 +92,11 @@ export default function Journal() {
             <h2 className="text-2xl font-bold mb-6">Write New Entry</h2>
 
             {message && (
-              <div className="mb-4 p-4 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 rounded-lg">
+              <div className={`mb-4 p-4 rounded-lg ${
+                message.includes('created') || message.includes('deleted') || message.includes('Entry deleted')
+                  ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100'
+                  : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100'
+              }`}>
                 {message}
               </div>
             )}

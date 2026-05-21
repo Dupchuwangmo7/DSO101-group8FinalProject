@@ -14,6 +14,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Community from './pages/Community';
 import Journal from './pages/Journal';
+import MoodTracker from './pages/MoodTracker';
 import Resources from './pages/Resources';
 import AdminDashboard from './pages/AdminDashboard';
 import Profile from './pages/Profile';
@@ -31,6 +32,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/community" element={<Community />} />
             <Route path="/journal" element={<Journal />} />
+            <Route path="/mood" element={<MoodTracker />} />
             <Route path="/resources" element={<Resources />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/profile" element={<Profile />} />
