@@ -105,8 +105,8 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       # ── Backend Image ────────────────────────────────────────
       - name: Build and push backend image
@@ -185,17 +185,17 @@ jobs:
       - name: Trigger Render backend deploy
         # Add RENDER_BACKEND_DEPLOY_HOOK to your GitHub repo secrets.
         # Get it from: Render dashboard → your service → Settings → Deploy Hook
-        if: ${{ secrets.RENDER_BACKEND_DEPLOY_HOOK != '' }}
+        if: ${{ secrets.RENDER_DEPLOY_HOOK_BACKEND != '' }}
         run: |
           curl -s -o /dev/null -w "%{http_code}" \
-            --request POST "${{ secrets.RENDER_BACKEND_DEPLOY_HOOK }}" \
+            --request POST "${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}" \
           | grep -q "^2" && echo "✅ Backend deploy triggered" || echo "❌ Backend deploy hook failed"
 
       - name: Trigger Render frontend deploy
-        if: ${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK != '' }}
+        if: ${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND != '' }}
         run: |
           curl -s -o /dev/null -w "%{http_code}" \
-            --request POST "${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK }}" \
+            --request POST "${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND }}" \
           | grep -q "^2" && echo "✅ Frontend deploy triggered" || echo "❌ Frontend deploy hook failed"
 
       - name: Deploy summary
