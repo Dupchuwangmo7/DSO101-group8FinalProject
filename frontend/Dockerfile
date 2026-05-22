@@ -4,6 +4,10 @@
 # Stage 1: Build stage
 FROM node:20-alpine AS build
 
+# Declare build argument so Docker passes it through to Vite
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
 WORKDIR /app
 
 # Copy package files from frontend directory
@@ -20,7 +24,7 @@ COPY frontend/tailwind.config.js ./
 COPY frontend/postcss.config.js ./
 COPY frontend/public ./public
 
-# Build React app with Vite
+# Build React app with Vite (VITE_API_URL is baked in here)
 RUN npm run build
 
 # Stage 2: Runtime stage with Nginx (non-root safe for Render)
