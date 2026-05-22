@@ -1,22 +1,19 @@
 # Frontend Dockerfile
 # Multi-stage build for optimized production image
+# In production: API calls go to /api/* and nginx proxies to backend
 
 # Stage 1: Build stage
 FROM node:20-alpine AS build
 
-# Declare build argument so Docker passes it through to Vite
-ARG VITE_API_URL
-ENV VITE_API_URL=$VITE_API_URL
-
 WORKDIR /app
 
-# Copy package files from frontend directory
+# Copy package files
 COPY frontend/package*.json ./
 
 # Install dependencies
 RUN npm install
 
-# Copy frontend source code
+# Copy source code
 COPY frontend/src ./src
 COPY frontend/index.html ./
 COPY frontend/vite.config.js ./
@@ -24,10 +21,10 @@ COPY frontend/tailwind.config.js ./
 COPY frontend/postcss.config.js ./
 COPY frontend/public ./public
 
-# Build React app with Vite (VITE_API_URL is baked in here)
+# Build with Vite (NO VITE_API_URL — api.js will use /api fallback)
 RUN npm run build
 
-# Stage 2: Runtime stage with Nginx (non-root safe for Render)
+# Stage 2: Runtime stage with Nginx
 FROM nginx:alpine
 
 # Remove the user directive so nginx doesn't require root
@@ -45,22 +42,18 @@ RUN mkdir -p /var/cache/nginx/client_temp \
     && touch /var/run/nginx.pid \
     && chown nginx:nginx /var/run/nginx.pid
 
-# Copy nginx config
+# Copy nginx config (proxies /api/ to backend)
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 
 # Copy built app from build stage
 COPY --from=build /app/dist /usr/share/nginx/html
 RUN chown -R nginx:nginx /usr/share/nginx/html
 
-# Switch to non-root user
 USER nginx
 
-# Expose port
 EXPOSE 80
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD wget --quiet --tries=1 --spider http://localhost/ || exit 1
 
-# Start nginx
 CMD ["nginx", "-g", "daemon off;"]

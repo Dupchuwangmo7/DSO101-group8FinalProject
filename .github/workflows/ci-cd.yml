@@ -133,8 +133,8 @@ jobs:
           tags: |
             ${{ env.FRONTEND_IMAGE }}:latest
             ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
-          build-args: |
-            VITE_API_URL=${{ secrets.API_URL }}
+          # NO build-args needed — production uses nginx /api/ proxy to backend
+          no-cache: true
           cache-from: type=registry,ref=${{ env.FRONTEND_IMAGE }}:buildcache
           cache-to: type=registry,ref=${{ env.FRONTEND_IMAGE }}:buildcache,mode=max
 

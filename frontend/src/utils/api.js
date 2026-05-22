@@ -1,13 +1,16 @@
 /**
  * API Client Setup
  * Configures axios with base URL and includes JWT token in requests
+ *
+ * In production: requests go to /api/* (relative) → nginx proxies to backend
+ * In development: VITE_API_URL in .env points to local backend
  */
 
 import axios from 'axios';
 
-const baseURL = import.meta.env.VITE_API_URL 
+const baseURL = import.meta.env.VITE_API_URL
   ? `${import.meta.env.VITE_API_URL}/api`
-  : '/api'; // nginx proxies /api/ → backend in production
+  : '/api';
 
 const api = axios.create({
   baseURL,
@@ -42,4 +45,3 @@ api.interceptors.response.use(
 );
 
 export default api;
-
