@@ -2,15 +2,15 @@
  * API Client Setup
  * Configures axios with base URL and includes JWT token in requests
  *
- * In production: requests go to /api/* (relative) → nginx proxies to backend
- * In development: VITE_API_URL in .env points to local backend
+ * Always uses /api in production (nginx proxies to backend).
+ * In dev, Vite dev server proxies /api to localhost backend (see vite.config.js).
  */
 
 import axios from 'axios';
 
-const baseURL = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}/api`
-  : '/api';
+// ALWAYS use /api - nginx (prod) or Vite dev server (dev) handles proxying
+// This prevents any malformed VITE_API_URL value from breaking the build
+const baseURL = '/api';
 
 const api = axios.create({
   baseURL,
