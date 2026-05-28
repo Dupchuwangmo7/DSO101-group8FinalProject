@@ -1,8 +1,6 @@
 name: CI/CD Pipeline
 
-# ============================================================
-# Trigger Configuration
-# ============================================================
+
 on:
   push:
     branches:
@@ -19,13 +17,11 @@ env:
   FRONTEND_IMAGE: dupchuuw/final-project-frontend
   BACKEND_IMAGE: dupchuuw/final-project-backend
 
-# ============================================================
-# Jobs
-# ============================================================
+
 jobs:
-  # ============================================================
+
   # Lint and Test
-  # ============================================================
+  
   lint-and-test:
     name: Lint & Test
     runs-on: ubuntu-latest
@@ -66,9 +62,9 @@ jobs:
           MONGODB_URI: ${{ secrets.TEST_MONGODB_URI }}
           JWT_SECRET: test-secret
 
-      # ============================================================
+ 
       # Frontend Testing
-      # ============================================================
+   
       - name: Install frontend dependencies
         working-directory: ./frontend
         run: npm ci
@@ -86,9 +82,9 @@ jobs:
           # default defined in vite.config.js or leave it undefined (OK for CI)
           VITE_API_URL: ${{ secrets.API_URL || '' }}
 
-  # ============================================================
+
   # Build Docker Images
-  # ============================================================
+
   build-images:
     name: Build Docker Images
     runs-on: ubuntu-latest

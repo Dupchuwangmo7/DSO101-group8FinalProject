@@ -1,19 +1,13 @@
-# Frontend Dockerfile
-# Multi-stage build for optimized production image
-# In production: API calls go to /api/* and nginx proxies to backend
 
-# Stage 1: Build stage
 FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# Copy package files
+
 COPY frontend/package*.json ./
 
-# Install dependencies
 RUN npm install
 
-# Copy source code
 COPY frontend/src ./src
 COPY frontend/index.html ./
 COPY frontend/vite.config.js ./
@@ -21,10 +15,9 @@ COPY frontend/tailwind.config.js ./
 COPY frontend/postcss.config.js ./
 COPY frontend/public ./public
 
-# Build with Vite (NO VITE_API_URL — api.js will use /api fallback)
 RUN npm run build
 
-# Stage 2: Runtime stage with Nginx
+
 FROM nginx:alpine
 
 # Remove the user directive so nginx doesn't require root
